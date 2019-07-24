@@ -47,12 +47,14 @@ export default class LocationView extends React.Component {
     Events.listen('InputBlur', this.constructor.displayName, this._onTextBlur);
     Events.listen('InputFocus', this.constructor.displayName, this._onTextFocus);
     Events.listen('PlaceSelected', this.constructor.displayName, this._onPlaceSelected);
+    Events.listen('NeighborhoodSelected', this.constructor.displayName, this._onNeighborhoodSelected)
   }
 
   componentWillUnmount() {
     Events.rm('InputBlur', this.constructor.displayName);
     Events.rm('InputFocus', this.constructor.displayName);
     Events.rm('PlaceSelected', this.constructor.displayName);
+    Events.rm('NeighborhoodSelected', this.constructor.displayName);
   }
 
   state = {
@@ -62,6 +64,7 @@ export default class LocationView extends React.Component {
       ...DEFAULT_DELTA,
       ...this.props.initialLocation,
     },
+    neighborhood: null
   };
 
   _animateInput = () => {
@@ -79,7 +82,12 @@ export default class LocationView extends React.Component {
   };
 
   _onMapRegionChangeComplete = region => {
-    this._input.fetchAddressForLocation(region);
+    if(this.state.neighborhood){
+        this._input.fetchNeighborHoldForLocation(this.state.neighborhood)
+    }
+    else{
+        this._input.fetchAddressForLocation(region);
+    }
   };
 
   _onTextFocus = () => {
@@ -105,7 +113,16 @@ export default class LocationView extends React.Component {
     });
   };
 
+  _onNeighborhoodSelected = name => {
+    this.setState({
+        neighborhood: name
+    })
+  }
+
   _getCurrentLocation = () => {
+    this.setState({
+        neighborhood: null
+    })
     navigator.geolocation.getCurrentPosition(position => {
       let location = (({ latitude, longitude }) => ({ latitude, longitude }))(position.coords);
       this._setRegion(location);
@@ -149,7 +166,8 @@ export default class LocationView extends React.Component {
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.actionButton, this.props.actionButtonStyle]}
-          onPress={() => this.props.onLocationSelect({ ...this.state.region, address: this._input.getAddress() })}
+          onPress={() => this.props.onLocationSelect({ ...this.state.region, address: this._input.getAddress(), neighborhood: this.state.neighborhood
+          })}
         >
           <View>
             <Text style={[styles.actionText, this.props.actionTextStyle]}>{this.props.actionText}</Text>
