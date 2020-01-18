@@ -41,6 +41,9 @@ export default class LocationView extends React.Component {
     if (Platform.OS === 'android') {
       UIManager.setLayoutAnimationEnabledExperimental && UIManager.setLayoutAnimationEnabledExperimental(true);
     }
+    navigator.geolocation.getCurrentPosition(position => {
+      let location = (({ latitude, longitude }) => ({ latitude, longitude }))(position.coords);
+    });
   }
 
   componentDidMount() {
